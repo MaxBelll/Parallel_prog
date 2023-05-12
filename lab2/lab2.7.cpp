@@ -14,6 +14,7 @@
     << endl; exit(EXIT_FAILURE); }
 using namespace std;
 pthread_mutex_t mutex;
+int urls;
 pthread_cond_t cond;
 size_t lr = 0;
 queue<char *> sq;
@@ -113,7 +114,6 @@ void write(char* cur)
 
 void* thread_job(void* arg)
 {
-
   int err;
   int stop=0;
     while(!sq.empty())
@@ -130,11 +130,13 @@ void* thread_job(void* arg)
       }
 
       char* cur=sq.front();
+      //cout << cur << " " << stop << '\n';
       stop++;
       sq.pop();
       err = pthread_mutex_unlock(&mutex);
       if(err != 0)
         err_exit(err, "Cannot unlock mutex");
+      urls++;
       write(cur);
       if(stop>20)
       break;
@@ -144,8 +146,9 @@ void* thread_job(void* arg)
 }
 int main()
 {
-  for(int j=2;j<10;++j)
-    {
+  for(int j=1;j<5;++j)
+  {
+      urls=0;
   int err;
   pthread_t* threads = new pthread_t[j];
   err = pthread_mutex_init(&mutex, NULL);
@@ -185,7 +188,8 @@ int main()
     }
      auto end= chrono::steady_clock::now();
     auto time = chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    std::cout<<"потоков "<<j-1<<" time "<<time.count()<<endl;
+
+    std::cout<<"потоков "<<j<<" urls "<<urls<< endl;
   pthread_mutex_destroy(&mutex);
   pthread_cond_destroy(&cond);
   }
